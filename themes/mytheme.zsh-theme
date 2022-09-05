@@ -42,9 +42,13 @@ function prompt_duration {
     then
         return
     fi
+    if ! (($MYTHEME_HIDE[(Ie)emoji]))
+    then
+        ICON='⏳ '
+    fi
     if [[ $MYTHEME_DURATION -gt 1 ]]
     then
-        echo -n "%K{5}⏳ ${MYTHEME_DURATION}s "
+        echo -n "%K{5}$ICON${MYTHEME_DURATION}s "
     fi
 }
 
@@ -53,7 +57,11 @@ function prompt_time {
     then
         return
     fi
-    echo -n '%F{6} %T ⏰'
+    if ! (($MYTHEME_HIDE[(Ie)emoji]))
+    then
+        ICON=' ⏰'
+    fi
+    echo -n "%F{6} %T$ICON"
 }
 
 function prompt_dir {
@@ -61,7 +69,11 @@ function prompt_dir {
     then
         return
     fi
-    echo -n '%K{blue}📁 %~ '
+    if ! (($MYTHEME_HIDE[(Ie)emoji]))
+    then
+        ICON='📁 '
+    fi
+    echo -n "%K{blue}$ICON%~ "
 }
 
 function prompt_computer_name {
@@ -69,7 +81,11 @@ function prompt_computer_name {
     then
         return
     fi
-    echo -n '%K{green}🏠 %n@%m '
+    if ! (($MYTHEME_HIDE[(Ie)emoji]))
+    then
+        ICON='🏠 '
+    fi
+    echo -n "%K{green}$ICON%n@%m "
 }
 
 setopt PROMPT_SUBST
