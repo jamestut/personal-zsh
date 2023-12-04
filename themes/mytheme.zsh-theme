@@ -94,4 +94,4 @@ add-zsh-hook precmd my_precmd
 MYTHEME_TIME_PREEXEC=0
 
 PROMPT='%F{231}$(prompt_computer_name)$(prompt_dir)$(prompt_err)$(prompt_duration)%k $(prompt_char) '
-RPROMPT='$(prompt_time)'
+# RPROMPT='$(prompt_time)'
