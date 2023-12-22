@@ -1,0 +1,11 @@
+export PAGER=cat
+export EDITOR=nano
+export VISUAL=nano
+
+## history
+export HISTFILE=~/.zsh_history
+export SAVEHIST=100000
+setopt APPEND_HISTORY
+## for sharing history between zsh processes
+setopt INC_APPEND_HISTORY
+setopt SHARE_HISTORY
