@@ -88,6 +88,10 @@ function prompt_computer_name {
     echo -n "%K{green}$ICON%n@%m "
 }
 
+# adjust keyboard shortcuts
+bindkey "^[[1;5D" backward-word
+bindkey "^[[1;5C" forward-word
+
 setopt PROMPT_SUBST
 add-zsh-hook preexec preexec_duration
 add-zsh-hook precmd my_precmd
