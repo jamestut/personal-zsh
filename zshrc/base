@@ -2,10 +2,18 @@ export PAGER=cat
 export EDITOR=nano
 export VISUAL=nano
 
+## ---
+## SHARE_HISTORY implies INC_APPEND_HISTORY implies APPEND_HISTORY.
+## To prevent ↑ pollution from other sessions while keeping Ctrl+R able to find
+## other sessions' older commands, replace SHARE_HISTORY with INC_APPEND_HISTORY.
+## Ctrl+R won't see commands typed in sessions started after this one, though.
+setopt SHARE_HISTORY              # share history between live zsh sessions
+
 ## history
-export HISTFILE=~/.zsh_history
-export SAVEHIST=100000
-setopt APPEND_HISTORY
-## for sharing history between zsh processes
-setopt INC_APPEND_HISTORY
-setopt SHARE_HISTORY
+HISTFILE=~/.zsh_history           # where history is written
+HISTSIZE=100000                   # max entries kept in memory
+SAVEHIST=100000                   # max entries written to $HISTFILE
+setopt HIST_IGNORE_ALL_DUPS       # drop older duplicate entries entirely
+setopt HIST_IGNORE_SPACE          # commands starting with a space aren't saved
+setopt HIST_REDUCE_BLANKS         # trim extra whitespace from commands
+# setopt EXTENDED_HISTORY           # store timestamps and execution duration
