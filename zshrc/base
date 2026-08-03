@@ -17,3 +17,6 @@ setopt HIST_IGNORE_ALL_DUPS       # drop older duplicate entries entirely
 setopt HIST_IGNORE_SPACE          # commands starting with a space aren't saved
 setopt HIST_REDUCE_BLANKS         # trim extra whitespace from commands
 # setopt EXTENDED_HISTORY           # store timestamps and execution duration
+
+# for forward delete (e.g. delete button instead of backspace)
+bindkey "^[[3~" delete-char
