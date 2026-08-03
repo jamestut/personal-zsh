@@ -31,4 +31,4 @@ else
   _time_part='%F{cyan}$_tim%f'
 fi
 
-PROMPT="${_status_part}${_time_part} %~ %# "
+PROMPT="${_status_part}${_time_part} %F{yellow}%n@%m%f %~ %# "
