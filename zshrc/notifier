@@ -1,0 +1,80 @@
+# long-cmd-notif.zsh
+# Sends a notification when a command takes longer than $NOTIFTIMEOUT seconds.
+# Notification server: https://github.com/jamestut/web-notifier
+#
+# Usage: define the variables below in .zshrc, then source this file, e.g.:
+#   source ~/path/to/long-cmd-notif.zsh
+#
+# Expected variables (defined in .zshrc BEFORE sourcing this file):
+#   NOTIFTIMEOUT        - minimum elapsed seconds to trigger a notification
+#   NOTIFCHANNELID      - notify channel/topic to post to
+#   NOTIFTITLE          - notification title
+#   NOTIFFUNCTIONHOST   - host of the notify function endpoint
+
+# No host configured — disable the entire hook
+# (return works because this file is sourced)
+[[ -n ${NOTIFFUNCTIONHOST:-} ]] || return
+
+zmodload zsh/datetime   # provides $EPOCHREALTIME (float seconds, sub-second precision)
+
+# --- Hook 1: preexec ----------------------------------------------------------
+# Fires the instant a command is submitted, before it runs.
+# Captures the start timestamp and the raw command text.
+_notif_start() {
+  _notif_ts=$EPOCHREALTIME
+  _notif_cmd=$1
+}
+
+# --- Hook 2: precmd -----------------------------------------------------------
+# Fires right after the command finishes, before the next prompt.
+# Computes elapsed time; notifies if it exceeded $NOTIFTIMEOUT.
+_notif_check() {
+  # Capture the command's exit code BEFORE anything else — any
+  # command run here would clobber $? ([[ ]], (( )), etc. included).
+  #
+  # Caveat: with add-zsh-hook, multiple precmd hooks run in
+  # registration order. If an earlier hook executes any command,
+  # $? is overwritten before this hook sees it. Register this
+  # hook first (or capture $? in every hook).
+  local rc=$?
+
+  # No timestamp -> first prompt or empty command; nothing to time
+  [[ -n ${_notif_ts:-} ]] || return
+
+  local elapsed=$(( EPOCHREALTIME - _notif_ts ))
+  _notif_ts=   # reset state so it doesn't leak into the next prompt
+
+  # Too fast to care; bail out
+  (( elapsed >= NOTIFTIMEOUT )) || return
+
+  # Truncate the command to 32 chars total; append ellipsis if it was cut
+  local cmd=$_notif_cmd
+  (( ${#cmd} > 32 )) && cmd="${cmd[1,31]}…"
+
+  local secs=${elapsed%.*}   # whole seconds (strip the decimal part)
+
+  # succeeded, or failed with the return code
+  local outcome="succeeded"
+  (( rc == 0 )) || outcome="failed ($rc)"
+
+  local msg="'$cmd' $outcome ($secs sec)"
+
+  # Fire-and-forget: background + disown (&!) so the request can never
+  # delay your prompt or print job-completion noise. JSON-encoding is
+  # delegated to python3 (argv passes $cmd literally, json.dumps escapes it).
+  python3 -c '
+import json, sys, urllib.request
+body = json.dumps({"channel": sys.argv[1], "message": sys.argv[2], "title": sys.argv[3]}).encode()
+req = urllib.request.Request(f"https://{sys.argv[4]}/send",
+                             data=body, headers={"Content-Type": "application/json"})
+urllib.request.urlopen(req)
+' "$NOTIFCHANNELID" "$msg" "$NOTIFTITLE" "$NOTIFFUNCTIONHOST" &> /dev/null &!
+}
+
+# Register both functions as zsh hooks.
+# add-zsh-hook allows multiple independent hooks to coexist.
+# NOTE: keep _notif_check registered before any other precmd
+# hook that runs commands, or $? may be clobbered before it's read.
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec _notif_start
+add-zsh-hook precmd  _notif_check
